@@ -1,0 +1,32 @@
+name: Sync Upstream Repository
+
+on:
+  schedule:
+    # 每天UTC时间00:00执行（北京时间08:00）
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Sync upstream changes
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          upstream_sync_repo: soluckysummer/n8n_workflows
+          upstream_sync_branch: main
+          target_sync_branch: main
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+          test_mode: false
+
+      - name: Check for failure
+        if: failure()
+        run: |
+          echo "同步失败，请检查是否有冲突需要手动解决"
+          exit 1
